@@ -53,19 +53,32 @@ public class WebLogAspect {
         log.info("后置通知执行");
     }
     /**
-     * 定义环绕通知
+     * 定义环绕通知 方法签名有返回类型
      */
     @Around("webLog()")
-    public void  around(ProceedingJoinPoint proceedingJoinPoint)throws Throwable{
+    public Object  around(ProceedingJoinPoint proceedingJoinPoint)throws Throwable{
         log.info("环绕通知开始");
+        // 实际开发中需要定义一个返回类，包装返回结果。
+        /**
+         * public class ResponseResult{
+         *   int code ;
+         *   String message ;
+         *   T result ;
+         *
+         *   // get set methods
+         *   // constructor
+         *   }
+         */
         try {
             Object proceed = proceedingJoinPoint.proceed();
             log.info("返回正常结果："+objectMapper.writeValueAsString(proceed));
+            return proceed;
         }catch (WrapException ex){
            log.error("出现异常："+ex.getMessage());
         }
 
         log.info("环绕通知结束");
+        return null;
     }
     /**
      * 异常通知 不建议使用异常通知，因为会使用系统输出打印日志，消耗系统资源，建议在环绕通知中 捕获不同异常，进行处理
@@ -77,7 +90,7 @@ public class WebLogAspect {
     }
 
     /**
-     * 正常返回通知  环绕通知和返回通知 不能通知存在，否则在返回通知中获取不到结果。
+     * 正常返回通知
      */
     @AfterReturning(pointcut = "webLog()",returning = "result")
     public void afterReturning(Object result)throws Exception{
